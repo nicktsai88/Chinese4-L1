@@ -21,7 +21,7 @@
             --quick-mode-color: #0097a7; /* 速度青 */
             --quick-mode-bg: #e0f7fa;    /* 流水淺藍背景 */
             --player-bg: #ffffff;
-            --header-height: 80px;      /* 稍微縮減高度 */
+            --header-height: 100px;
         }
 
         body { 
@@ -43,33 +43,33 @@
         h1, h2, h3 { text-align: center; color: var(--text-color); }
         h1 { color: var(--primary-color); text-shadow: 1px 1px 2px rgba(0,0,0,0.1); margin-top: 0;}
 
-        /* --- 音樂播放器固定列 (MP3版) --- */
+        /* --- 音樂播放器固定列 --- */
         #music-player-bar {
             position: fixed; top: 0; left: 0; width: 100%; height: var(--header-height);
             background-color: var(--player-bg); border-bottom: 3px solid var(--primary-color);
             box-shadow: 0 4px 15px rgba(0,0,0,0.1); display: flex; align-items: center;
-            justify-content: space-between; padding: 0 20px; box-sizing: border-box;
+            justify-content: space-between; padding: 0 15px; box-sizing: border-box;
             z-index: 10000;
         }
-        .player-left { flex: 1; display: flex; align-items: center; gap: 15px; }
+        .player-left { flex: 1; display: flex; justify-content: flex-start; }
         .player-right { flex: 1; display: flex; justify-content: flex-end; }
-        .player-icon { font-size: 1.5em; background: #fff; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid var(--primary-color); color: var(--primary-color);}
-        
-        .track-info {
-            font-size: 0.9em; color: #555; max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            display: flex; flex-direction: column;
-        }
-        .track-name { font-weight: bold; color: var(--secondary-color); }
-        .track-status { font-size: 0.8em; color: #888; }
+        .player-icon { font-size: 1.5em; background: #fff; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; border: 2px solid var(--primary-color); color: var(--primary-color);}
 
-        .player-controls { display: flex; align-items: center; gap: 10px; }
-        .ctrl-btn { background: none; border: none; cursor: pointer; color: #7f8c8d; font-size: 1.6em; padding: 5px; transition: 0.2s;}
-        .ctrl-btn:hover, .ctrl-btn.active { color: var(--primary-color); transform: scale(1.1); }
-        .volume-container { display: flex; align-items: center; gap: 5px; margin-left: 10px; }
-        .volume-slider { width: 70px; accent-color: var(--primary-color); cursor: pointer;}
+        #yt-wrapper {
+            position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+            width: 144px; height: 81px; background: #000; border: 2px solid var(--text-color);
+            border-radius: 4px; overflow: hidden; transition: all 0.3s ease; z-index: 5;
+        }
+        .yt-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: transparent; z-index: 20; }
+        #yt-wrapper.video-hidden { width: 0; height: 0; border: none; opacity: 0; }
         
-        /* 隱藏原生 Audio 標籤 */
-        #audio-player { display: none; }
+        .player-controls { display: flex; align-items: center; gap: 8px; }
+        .ctrl-btn { background: none; border: none; cursor: pointer; color: #7f8c8d; font-size: 1.4em; padding: 5px; }
+        .ctrl-btn:hover, .ctrl-btn.active { color: var(--primary-color); }
+        .volume-container { display: flex; align-items: center; gap: 5px; }
+        .volume-slider { width: 60px; accent-color: var(--primary-color); cursor: pointer;}
+        .mode-btn { border: 1px solid #bdc3c7; background: #fff; padding: 5px 10px; border-radius: 20px; font-size: 0.8em; cursor: pointer; display: flex; align-items: center; gap: 5px;}
+        .mode-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
 
         /* --- 容器通用 --- */
         .container-box {
@@ -308,15 +308,13 @@
             .card-actions { top: 10px; right: 10px; }
             /* Mobile Sticky Header Height Adjustment */
             .waterfall-header { top: 60px; margin-top: -15px;} 
-            #music-player-bar { height: 70px; padding: 0 10px; }
+            #music-player-bar { height: 60px; padding: 0 10px; }
             body { padding-top: 80px; }
+            #yt-wrapper { display: none; position: fixed; bottom: 10px; right: 10px; width: 120px; height: 67px; top: auto; left: auto; transform: none; }
+            #yt-wrapper.mobile-visible { display: block; }
             
             /* AI Chat Mobile Styles */
             #ai-chat-window { width: 90%; right: 5%; bottom: 80px; height: 50vh; }
-            
-            .player-left { gap: 8px; }
-            .track-info { max-width: 100px; font-size: 0.8em; }
-            .volume-container { display: none; } /* 手機版隱藏音量條以節省空間 */
         }
 
         @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
@@ -326,30 +324,33 @@
 
     <!-- 音樂播放器 -->
     <div id="music-player-bar">
-        <!-- 隱藏的 Audio 標籤 -->
-        <audio id="audio-player"></audio>
-
         <div class="player-left">
-            <div class="player-icon">🎵</div>
-            <div class="track-info">
-                <div class="track-name" id="track-name">準備播放...</div>
-                <div class="track-status" id="track-status">等待進入賽場</div>
-            </div>
+            <div class="player-icon">🏃</div>
+        </div>
+        
+        <div id="yt-wrapper">
+            <div id="yt-player"></div>
+            <div class="yt-overlay"></div>
         </div>
         
         <div class="player-right">
             <div class="player-controls">
-                <button class="ctrl-btn" onclick="prevTrack()" title="上一首">⏮</button>
-                <button id="main-play-btn" class="ctrl-btn" onclick="togglePlay()" title="播放/暫停">▶</button>
-                <button class="ctrl-btn" onclick="nextTrack()" title="下一首 (隨機)">⏭</button>
+                <button class="ctrl-btn" onclick="prevTrack()">⏮</button>
+                <button id="main-play-btn" class="ctrl-btn" onclick="togglePlay()">▶</button>
+                <button class="ctrl-btn" onclick="nextTrack()">⏭</button>
                 
                 <div class="volume-container">
-                    <span style="font-size:0.8em">🔊</span>
-                    <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.1" value="0.3" oninput="setVolume(this.value)">
+                    <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="30" oninput="setVolume(this.value)">
                 </div>
 
-                <!-- AI Button -->
+                <button id="toggle-video-btn" class="ctrl-btn active" onclick="toggleVideoDisplay()">👁️</button>
+                
+                <!-- AI Button Added Here -->
                 <button id="ai-btn" class="ctrl-btn" onclick="toggleChatWindow()" title="AI 書僮">🤖</button>
+
+                <button id="mode-btn" class="mode-btn" onclick="changeMode()">
+                    <span id="mode-icon">🔁</span>
+                </button>
             </div>
         </div>
     </div>
@@ -374,7 +375,6 @@
 
         <div style="text-align:center; margin-top: 30px;">
             <button class="btn" onclick="loginAndStart()">🚀 進入賽場</button>
-            <p style="margin-top:10px; color:#888; font-size:0.9em;">(點擊後將自動播放背景音樂)</p>
         </div>
     </div>
 
@@ -525,34 +525,26 @@
         </div>
     </div>
 
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // AI Configuration
+        // 修改點：移除硬編碼的 API Key，改用 LocalStorage
         const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
 
         // 設定與全域變數
+        // 修改點: 總題數 168 題，分為 8 關 (7*20 + 1*28)
         const LEVEL_CONFIG = [20, 20, 20, 20, 20, 20, 20, 28];
+        // 影片播放清單
+        const YOUTUBE_PLAYLIST = ['iLAS0vy7-78', '5zeyr-_G_4w', 'aZXJATkkDoA', 'UKbZ4r88z3Q', 'aGZk0nEBWv4', 'advioIb8-gE'];
+        // 修改點: LocalStorage 前綴改為 Chinese4-L1_
         const APP_PREFIX = 'Chinese4-L1_';
         
+        let player, isPlayerReady = false, isPlaying = false;
         let allQuestions = [], currentQuizData = [];
         let userName = "", currentAvatar = "Chris.png";
         
-        // --- 🎵 音樂播放器設定 (請在此修改) ---
-        const MUSIC_CONFIG = {
-            useGitHub: true,            // ★ 如果您的檔案在 GitHub 上，請改為 true
-            username: 'nicktsai88',   // 您的 GitHub 使用者名稱
-            repo: 'Music',      // 您的 GitHub 儲存庫名稱
-            folder: '',             // MP3 所在的資料夾名稱
-            // 預設範例音樂 (當 useGitHub 為 false 時使用)
-            fallbackPlaylist: [
-                { name: 'Inspiration', url: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3' },
-                { name: 'Motivated', url: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3' },
-                { name: 'Success', url: 'https://cdn.pixabay.com/download/audio/2021/09/06/audio_9c084d59a5.mp3' }
-            ]
-        };
-
-        let audioPlaylist = [];
-        let currentTrackIndex = 0;
-        const audioPlayer = document.getElementById('audio-player');
+        // 影片索引追蹤
+        let currentVideoIdx = 0;
         
         // 測驗狀態
         let quizState = {
@@ -571,114 +563,8 @@
         fetch('questions.json').then(res => res.json())
             .then(data => { allQuestions = data; renderQuickLogin(); })
             .catch(e => console.error("Error loading questions:", e));
-        
-        // 頁面載入時先準備歌單
-        initMusicSystem();
 
         function getUserKey(key) { return APP_PREFIX + userName + '_' + key; }
-
-        // --- 音樂系統邏輯 ---
-        async function initMusicSystem() {
-            if (MUSIC_CONFIG.useGitHub) {
-                // 使用 GitHub API 讀取資料夾
-                const apiUrl = `https://api.github.com/repos/${MUSIC_CONFIG.username}/${MUSIC_CONFIG.repo}/contents/${MUSIC_CONFIG.folder}`;
-                try {
-                    document.getElementById('track-status').innerText = "讀取 GitHub 歌單中...";
-                    const response = await fetch(apiUrl);
-                    if (!response.ok) throw new Error('GitHub API Error');
-                    const files = await response.json();
-                    
-                    // 過濾出 MP3 並建立歌單
-                    audioPlaylist = files
-                        .filter(file => file.name.toLowerCase().endsWith('.mp3'))
-                        .map(file => ({
-                            name: file.name.replace('.mp3', ''),
-                            url: file.download_url // 使用 GitHub 提供的原始下載連結
-                        }));
-                    
-                    if (audioPlaylist.length === 0) throw new Error('Folder is empty or no MP3s');
-                    
-                    console.log("GitHub Music Loaded:", audioPlaylist);
-                } catch (e) {
-                    console.error("Music Load Failed:", e);
-                    document.getElementById('track-status').innerText = "GitHub 讀取失敗，使用備用音樂";
-                    audioPlaylist = MUSIC_CONFIG.fallbackPlaylist;
-                }
-            } else {
-                audioPlaylist = MUSIC_CONFIG.fallbackPlaylist;
-            }
-            
-            // 洗牌
-            shufflePlaylist();
-            
-            // 準備第一首但不播放 (等待使用者點擊)
-            if(audioPlaylist.length > 0) {
-                currentTrackIndex = 0;
-                loadTrack(currentTrackIndex, false);
-            }
-        }
-
-        function shufflePlaylist() {
-            for (let i = audioPlaylist.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [audioPlaylist[i], audioPlaylist[j]] = [audioPlaylist[j], audioPlaylist[i]];
-            }
-        }
-
-        function loadTrack(index, autoPlay = true) {
-            if (index < 0 || index >= audioPlaylist.length) return;
-            
-            const track = audioPlaylist[index];
-            audioPlayer.src = track.url;
-            audioPlayer.volume = document.getElementById('volume-slider').value;
-            
-            document.getElementById('track-name').innerText = track.name;
-            
-            if (autoPlay) {
-                const playPromise = audioPlayer.play();
-                if (playPromise !== undefined) {
-                    playPromise.then(_ => {
-                        document.getElementById('main-play-btn').innerText = '⏸';
-                        document.getElementById('track-status').innerText = "播放中...";
-                    }).catch(error => {
-                        console.log("Auto-play prevented:", error);
-                        document.getElementById('main-play-btn').innerText = '▶';
-                        document.getElementById('track-status').innerText = "點擊播放";
-                    });
-                }
-            }
-        }
-
-        function togglePlay() {
-            if (audioPlayer.paused) {
-                audioPlayer.play();
-                document.getElementById('main-play-btn').innerText = '⏸';
-                document.getElementById('track-status').innerText = "播放中...";
-            } else {
-                audioPlayer.pause();
-                document.getElementById('main-play-btn').innerText = '▶';
-                document.getElementById('track-status').innerText = "已暫停";
-            }
-        }
-
-        function nextTrack() {
-            currentTrackIndex = (currentTrackIndex + 1) % audioPlaylist.length;
-            loadTrack(currentTrackIndex);
-        }
-
-        function prevTrack() {
-            currentTrackIndex = (currentTrackIndex - 1 + audioPlaylist.length) % audioPlaylist.length;
-            loadTrack(currentTrackIndex);
-        }
-
-        function setVolume(v) {
-            audioPlayer.volume = v;
-        }
-
-        // 當歌曲結束時自動播下一首
-        audioPlayer.onended = function() {
-            nextTrack();
-        };
 
         // --- 登入與導航 ---
         function selectAvatar(img, el) {
@@ -692,16 +578,7 @@
             if(!name) return alert('請輸入選手名稱');
             userName = name;
             saveUser();
-            
-            // ★★★ 關鍵修改：在使用者點擊進入後，觸發隨機播放 ★★★
-            // 因為瀏覽器政策禁止自動播放，必須在使用者互動(點擊)後才能開始
-            if(audioPlayer.paused && audioPlaylist.length > 0) {
-                // 重新洗牌，確保每次進來都不一樣
-                shufflePlaylist();
-                currentTrackIndex = 0;
-                loadTrack(0, true);
-            }
-
+            if(isPlayerReady && !isPlaying) player.playVideo();
             goToDashboard();
         }
 
@@ -1403,6 +1280,46 @@
             
             msgArea.scrollTop = msgArea.scrollHeight;
         }
+
+        // --- YouTube & Audio ---
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('yt-player', {
+                height: '100%', width: '100%',
+                videoId: YOUTUBE_PLAYLIST[currentVideoIdx],
+                playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1, 'fs': 0, 'rel': 0 },
+                events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
+            });
+        }
+        function onPlayerReady() { isPlayerReady = true; player.setVolume(30); }
+        function onPlayerStateChange(e) { 
+            isPlaying = (e.data == YT.PlayerState.PLAYING);
+            document.getElementById('main-play-btn').innerText = isPlaying ? '⏸' : '▶';
+            if(e.data == YT.PlayerState.ENDED) player.playVideo(); // Loop
+        }
+        function togglePlay() { if(isPlayerReady) isPlaying ? player.pauseVideo() : player.playVideo(); }
+        function prevTrack() { 
+            if(isPlayerReady) {
+                currentVideoIdx = (currentVideoIdx - 1 + YOUTUBE_PLAYLIST.length) % YOUTUBE_PLAYLIST.length;
+                player.loadVideoById(YOUTUBE_PLAYLIST[currentVideoIdx]);
+            }
+        }
+        function nextTrack() { 
+            if(isPlayerReady) {
+                currentVideoIdx = (currentVideoIdx + 1) % YOUTUBE_PLAYLIST.length;
+                player.loadVideoById(YOUTUBE_PLAYLIST[currentVideoIdx]);
+            }
+        } 
+        function setVolume(v) { if(isPlayerReady) player.setVolume(v); }
+        function toggleVideoDisplay() {
+            const wrap = document.getElementById('yt-wrapper');
+            const btn = document.getElementById('toggle-video-btn');
+            if(window.innerWidth <= 768) wrap.classList.toggle('mobile-visible');
+            else wrap.classList.toggle('video-hidden');
+            
+            const hidden = wrap.classList.contains('video-hidden') && !wrap.classList.contains('mobile-visible');
+            btn.classList.toggle('active', !hidden);
+        }
+        function changeMode() { /* Loop handled by simple restart for now */ }
 
     </script>
 </body>
