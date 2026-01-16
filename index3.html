@@ -569,19 +569,7 @@
 
         // --- 初始化 ---
         fetch('questions.json').then(res => res.json())
-            .then(data => { 
-                allQuestions = data; 
-                renderQuickLogin();
-                
-                // ★ 自動登入檢查 ★
-                const lastUser = localStorage.getItem(APP_PREFIX + 'last_active_user');
-                const lastAvatar = localStorage.getItem(APP_PREFIX + 'last_active_avatar');
-                if (lastUser) {
-                    console.log("Auto-login found:", lastUser);
-                    // 呼叫登入函數，但傳入參數
-                    loginAndStart(lastUser, lastAvatar || 'Chris.png');
-                }
-            })
+            .then(data => { allQuestions = data; renderQuickLogin(); })
             .catch(e => console.error("Error loading questions:", e));
         
         // 頁面載入時先準備歌單
@@ -655,7 +643,7 @@
                     }).catch(error => {
                         console.log("Auto-play prevented:", error);
                         document.getElementById('main-play-btn').innerText = '▶';
-                        document.getElementById('track-status').innerText = "點擊播放 (F5後需手動)";
+                        document.getElementById('track-status').innerText = "點擊播放";
                     });
                 }
             }
@@ -699,29 +687,16 @@
             el.classList.add('selected');
         }
 
-        function loginAndStart(autoName = null, autoAvatar = null) {
-            let name;
-            // 判斷是自動登入還是手動登入
-            if (autoName) {
-                name = autoName;
-                currentAvatar = autoAvatar;
-            } else {
-                name = document.getElementById('username').value.trim();
-                if(!name) return alert('請輸入選手名稱');
-            }
-            
+        function loginAndStart() {
+            const name = document.getElementById('username').value.trim();
+            if(!name) return alert('請輸入選手名稱');
             userName = name;
-            
-            // ★ 保存當前活躍用戶 (Session Persistence)
-            localStorage.setItem(APP_PREFIX + 'last_active_user', userName);
-            localStorage.setItem(APP_PREFIX + 'last_active_avatar', currentAvatar);
-
             saveUser();
             
-            // ★ 自動播放邏輯 (如果是自動登入，瀏覽器可能會擋 Audio，catch 區塊會處理)
+            // ★★★ 關鍵修改：在使用者點擊進入後，觸發隨機播放 ★★★
+            // 因為瀏覽器政策禁止自動播放，必須在使用者互動(點擊)後才能開始
             if(audioPlayer.paused && audioPlaylist.length > 0) {
-                // 如果是手動登入，洗牌後播放
-                // 如果是 F5 自動登入，也重新開始
+                // 重新洗牌，確保每次進來都不一樣
                 shufflePlaylist();
                 currentTrackIndex = 0;
                 loadTrack(0, true);
@@ -767,11 +742,6 @@
             localStorage.removeItem(APP_PREFIX + name + '_waterfallProgress_mistake');
             localStorage.removeItem(APP_PREFIX + name + '_waterfallProgress_favorite');
             
-            // 清除該用戶的自動登入狀態
-            if (localStorage.getItem(APP_PREFIX + 'last_active_user') === name) {
-                localStorage.removeItem(APP_PREFIX + 'last_active_user');
-            }
-
             let users = JSON.parse(localStorage.getItem(APP_PREFIX+'savedUsers')) || [];
             localStorage.setItem(APP_PREFIX+'savedUsers', JSON.stringify(users.filter(u => u.name !== name)));
             renderQuickLogin();
@@ -1332,11 +1302,7 @@
         }
         function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
         
-        function logout() { 
-            // 登出時，移除自動登入紀錄
-            localStorage.removeItem(APP_PREFIX + 'last_active_user');
-            location.reload(); 
-        }
+        function logout() { location.reload(); }
 
         // --- AI Chat Logic ---
         function toggleChatWindow() {
