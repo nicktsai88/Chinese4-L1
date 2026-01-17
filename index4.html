@@ -3,21 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>國文第4冊：L1 運動家的風度 (Cloud Ver.)</title>
+    <title>國文第4冊：L1 運動家的風度</title>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-    <!-- Firebase Import Map -->
-    <script type="importmap">
-    {
-      "imports": {
-        "firebase/app": "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js",
-        "firebase/firestore": "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js",
-        "firebase/auth": "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js"
-      }
-    }
-    </script>
-
     <style>
         :root {
             /* 配色系統 - 運動家主題 (活力、競賽、榮譽) */
@@ -311,18 +299,6 @@
         .ai-send-btn { background: var(--primary-color); color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; }
         .ai-send-btn:hover { background: #b71c1c; }
 
-        /* --- Firebase Status Badge --- */
-        #firebase-status {
-            position: fixed; top: 10px; right: 20px; 
-            padding: 5px 12px; border-radius: 20px; 
-            background: rgba(0,0,0,0.6); color: white; 
-            font-size: 0.8em; z-index: 20002;
-            display: flex; align-items: center; gap: 5px;
-            backdrop-filter: blur(5px);
-        }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #999; }
-        .status-dot.online { background: #4caf50; box-shadow: 0 0 5px #4caf50; }
-
         /* RWD */
         @media (max-width: 768px) {
             #level-screen-content { flex-direction: column; }
@@ -348,12 +324,6 @@
 </head>
 <body>
 
-    <!-- Firebase 連線狀態 -->
-    <div id="firebase-status">
-        <div id="status-dot" class="status-dot"></div>
-        <span id="status-text">連線中...</span>
-    </div>
-
     <!-- 音樂播放器 -->
     <div id="music-player-bar">
         <!-- 隱藏的 Audio 標籤 -->
@@ -369,17 +339,17 @@
         
         <div class="player-right">
             <div class="player-controls">
-                <button class="ctrl-btn" onclick="window.app.prevTrack()" title="上一首">⏮</button>
-                <button id="main-play-btn" class="ctrl-btn" onclick="window.app.togglePlay()" title="播放/暫停">▶</button>
-                <button class="ctrl-btn" onclick="window.app.nextTrack()" title="下一首 (隨機)">⏭</button>
+                <button class="ctrl-btn" onclick="prevTrack()" title="上一首">⏮</button>
+                <button id="main-play-btn" class="ctrl-btn" onclick="togglePlay()" title="播放/暫停">▶</button>
+                <button class="ctrl-btn" onclick="nextTrack()" title="下一首 (隨機)">⏭</button>
                 
                 <div class="volume-container">
                     <span style="font-size:0.8em">🔊</span>
-                    <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.1" value="0.3" oninput="window.app.setVolume(this.value)">
+                    <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.1" value="0.3" oninput="setVolume(this.value)">
                 </div>
 
                 <!-- AI Button -->
-                <button id="ai-btn" class="ctrl-btn" onclick="window.app.toggleChatWindow()" title="AI 書僮">🤖</button>
+                <button id="ai-btn" class="ctrl-btn" onclick="toggleChatWindow()" title="AI 書僮">🤖</button>
             </div>
         </div>
     </div>
@@ -395,18 +365,15 @@
         </div>
         
         <div class="avatar-selection">
-            <img src="images/Chris.png" class="avatar-option selected" onclick="window.app.selectAvatar('Chris.png', this)">
-            <img src="images/Louis.png" class="avatar-option" onclick="window.app.selectAvatar('Louis.png', this)">
-            <img src="images/kitty.png" class="avatar-option" onclick="window.app.selectAvatar('kitty.png', this)">
+            <img src="images/Chris.png" class="avatar-option selected" onclick="selectAvatar('Chris.png', this)">
+            <img src="images/Louis.png" class="avatar-option" onclick="selectAvatar('Louis.png', this)">
+            <img src="images/kitty.png" class="avatar-option" onclick="selectAvatar('kitty.png', this)">
         </div>
 
-        <div id="quick-login-area" class="quick-login-area">
-            <!-- 雲端使用者列表將在此渲染 -->
-            <span style="color:#999; font-size:0.9em;">讀取雲端選手名單中...</span>
-        </div>
+        <div id="quick-login-area" class="quick-login-area"></div>
 
         <div style="text-align:center; margin-top: 30px;">
-            <button class="btn" onclick="window.app.loginAndStart()">🚀 進入賽場</button>
+            <button class="btn" onclick="loginAndStart()">🚀 進入賽場</button>
             <p style="margin-top:10px; color:#888; font-size:0.9em;">(點擊後將自動播放背景音樂)</p>
         </div>
     </div>
@@ -429,17 +396,17 @@
             <div class="dashboard-speed-zone">
                 <div class="speed-title">⚡ 賽道衝刺區</div>
                 <p style="color:#666; font-size:0.9em; text-align:center; margin-bottom: 10px;">不分關卡，瀑布流快速複習</p>
-                <button class="speed-big-btn" onclick="window.app.startWaterfallQuiz('speed')">🚀 開始衝刺 (全範圍)</button>
+                <button class="speed-big-btn" onclick="startWaterfallQuiz('speed')">🚀 開始衝刺 (全範圍)</button>
             </div>
         </div>
 
         <!-- 底部工具列 -->
         <div class="dashboard-tools">
-            <button id="btn-mistake" class="btn btn-red" onclick="window.app.startWaterfallQuiz('mistake')" style="display:none;">📕 錯題訓練 (<span id="mistake-count">0</span>)</button>
-            <button id="btn-favorite" class="btn btn-pink" onclick="window.app.startWaterfallQuiz('favorite')" style="display:none;">⭐ 重點收藏 (<span id="favorite-count">0</span>)</button>
-            <button class="btn btn-blue" onclick="window.app.showCollection()">🌿 榮譽圖鑑</button>
-            <button class="btn btn-green" onclick="window.app.showHistory()">🏆 英雄榜</button>
-            <button class="btn btn-gray" onclick="window.app.logout()">🚪 離場</button>
+            <button id="btn-mistake" class="btn btn-red" onclick="startWaterfallQuiz('mistake')" style="display:none;">📕 錯題訓練 (<span id="mistake-count">0</span>)</button>
+            <button id="btn-favorite" class="btn btn-pink" onclick="startWaterfallQuiz('favorite')" style="display:none;">⭐ 重點收藏 (<span id="favorite-count">0</span>)</button>
+            <button class="btn btn-blue" onclick="showCollection()">🌿 榮譽圖鑑</button>
+            <button class="btn btn-green" onclick="showHistory()">🏆 英雄榜</button>
+            <button class="btn btn-gray" onclick="logout()">🚪 離場</button>
         </div>
     </div>
 
@@ -448,9 +415,9 @@
         <div class="quiz-header">
             <h3 id="level-title" style="margin:0; color:var(--primary-color);">關卡 X</h3>
             <div style="display:flex; gap:10px;">
-                <button id="std-fav-btn" class="btn btn-sm" style="background:#fff; border:2px solid var(--favorite-color); color:var(--favorite-color); padding: 5px 10px;" onclick="window.app.toggleStandardFavorite()">☆</button>
-                <button class="btn btn-orange btn-sm" style="padding: 5px 10px;" onclick="window.app.restartQuiz()">🔄 重新開始</button>
-                <button class="btn btn-gray btn-sm" style="padding: 5px 10px;" onclick="window.app.exitQuiz()">🏠 離開</button>
+                <button id="std-fav-btn" class="btn btn-sm" style="background:#fff; border:2px solid var(--favorite-color); color:var(--favorite-color); padding: 5px 10px;" onclick="toggleStandardFavorite()">☆</button>
+                <button class="btn btn-orange btn-sm" style="padding: 5px 10px;" onclick="restartQuiz()">🔄 重新開始</button>
+                <button class="btn btn-gray btn-sm" style="padding: 5px 10px;" onclick="exitQuiz()">🏠 離開</button>
             </div>
         </div>
         
@@ -473,7 +440,7 @@
             <strong>💡 解析：</strong> <span id="explanation-text"></span>
         </div>
 
-        <button id="next-btn" class="btn" style="display: none; width: 100%; margin-top: 20px;" onclick="window.app.nextQuestion()">下一題 ➡️</button>
+        <button id="next-btn" class="btn" style="display: none; width: 100%; margin-top: 20px;" onclick="nextQuestion()">下一題 ➡️</button>
     </div>
 
     <!-- 瀑布流刷題介面 (Waterfall) -->
@@ -487,8 +454,8 @@
                 &nbsp;|&nbsp; 得分: <span id="wf-score" style="color:var(--correct-color)">0</span>
             </div>
             <div style="display:flex; gap: 5px;">
-                <button class="btn btn-orange btn-sm" onclick="window.app.restartQuiz()">🔄 重新開始</button>
-                <button class="btn btn-gray btn-sm" onclick="window.app.exitQuiz()">🏠 結束</button>
+                <button class="btn btn-orange btn-sm" onclick="restartQuiz()">🔄 重新開始</button>
+                <button class="btn btn-gray btn-sm" onclick="exitQuiz()">🏠 結束</button>
             </div>
         </div>
         
@@ -510,7 +477,7 @@
         <div id="new-card-alert" style="display:none; background:#e8f5e9; padding:10px; border-radius:10px; border:2px solid var(--secondary-color); margin-bottom:20px;">✨ 獲得新獎章！快去圖鑑查看！</div>
 
         <div style="display: flex; justify-content: center; gap: 15px;">
-            <button class="btn" onclick="window.app.goToDashboard()">🗺️ 返回賽場</button>
+            <button class="btn" onclick="goToDashboard()">🗺️ 返回賽場</button>
         </div>
     </div>
 
@@ -519,7 +486,7 @@
         <h2>🏆 英雄榜</h2>
         <ul id="history-list" style="list-style: none; padding: 0;"></ul>
         <div style="text-align: center; margin-top: 20px;">
-            <button class="btn" onclick="window.app.goToDashboard()">🗺️ 返回</button>
+            <button class="btn" onclick="goToDashboard()">🗺️ 返回</button>
         </div>
     </div>
     
@@ -527,14 +494,14 @@
         <h2>🌿 榮譽圖鑑 (需達80分)</h2>
         <div id="collection-grid" class="collection-grid"></div>
         <div style="text-align: center; margin-top: 20px;">
-            <button class="btn" onclick="window.app.goToDashboard()">🗺️ 返回</button>
+            <button class="btn" onclick="goToDashboard()">🗺️ 返回</button>
         </div>
     </div>
 
     <!-- Modal -->
-    <div id="card-modal" class="modal-overlay" onclick="window.app.closeCardModal()">
+    <div id="card-modal" class="modal-overlay" onclick="closeCardModal()">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <button class="modal-close" onclick="window.app.closeCardModal()">×</button>
+            <button class="modal-close" onclick="closeCardModal()">×</button>
             <img id="modal-img" src="" style="max-width:100%; max-height:80vh; border-radius:5px;">
             <h3 id="modal-title" style="margin-top:10px; color:#333;"></h3>
         </div>
@@ -545,64 +512,47 @@
         <div class="ai-header">
             <span>🤖 AI 陪練員</span>
             <div style="display:flex; gap:10px;">
-                <span class="ai-header-close" onclick="window.app.resetAiKey()" title="重設 API Key" style="font-size: 0.9em;">🔑</span>
-                <span class="ai-header-close" onclick="window.app.toggleChatWindow()">×</span>
+                <span class="ai-header-close" onclick="resetAiKey()" title="重設 API Key" style="font-size: 0.9em;">🔑</span>
+                <span class="ai-header-close" onclick="toggleChatWindow()">×</span>
             </div>
         </div>
         <div id="ai-messages" class="ai-messages">
             <div class="ai-msg bot">你好！我是你的 AI 陪練員，有什麼問題都可以問我喔！</div>
         </div>
         <div class="ai-input-area">
-            <input type="text" id="ai-input" class="ai-input" placeholder="輸入問題..." onkeypress="window.app.handleAiKeypress(event)">
-            <button class="ai-send-btn" onclick="window.app.sendAiMessage()">發送</button>
+            <input type="text" id="ai-input" class="ai-input" placeholder="輸入問題..." onkeypress="handleAiKeypress(event)">
+            <button class="ai-send-btn" onclick="sendAiMessage()">發送</button>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "firebase/app";
-        import { getFirestore, doc, setDoc, updateDoc, arrayUnion, arrayRemove, onSnapshot, getDoc } from "firebase/firestore";
-        import { getAuth, signInAnonymously } from "firebase/auth";
-
-        // ========================================================
-        // 1. Firebase Config (請填入您的設定)
-        // ========================================================
-        const firebaseConfig = {
-  apiKey: "AIzaSyAxQFt76ZPXE7d0i1XeNZ1yiiD2WYNIfHs",
-  authDomain: "chinese-learning-47f4d.firebaseapp.com",
-  projectId: "chinese-learning-47f4d",
-  storageBucket: "chinese-learning-47f4d.firebasestorage.app",
-  messagingSenderId: "76289812052",
-  appId: "1:76289812052:web:898384a916f9f341f62fc1"
-};
-
-
-        // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-
-        // ========================================================
-        // 2. Collection Settings (嚴格遵守規則3: 提取前綴)
-        // ========================================================
-        const ORIGINAL_PREFIX = 'Chinese4-L1_'; 
-        const COLLECTION_NAME = 'Chinese4-L1'; // 去掉底線作為 Collection Name
-        const DOC_GLOBAL = 'Global_Users';     // 儲存全域使用者列表的文件
-
-        // ========================================================
-        // 3. Application Logic
-        // ========================================================
-        
-        // State
-        let isFirebaseReady = false;
-        let currentUserData = {}; // 暫存當前使用者的 Firestore 資料
-        let unsubscribeUser = null; // 用來取消監聽
-        let unsubscribeGlobal = null; // 用來取消全域監聽
-
-        const LEVEL_CONFIG = [20, 20, 20, 20, 20, 20, 20, 28];
+    <script>
+        // AI Configuration
         const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=";
+
+        // 設定與全域變數
+        const LEVEL_CONFIG = [20, 20, 20, 20, 20, 20, 20, 28];
+        const APP_PREFIX = 'Chinese4-L1_';
         
         let allQuestions = [], currentQuizData = [];
         let userName = "", currentAvatar = "Chris.png";
+        
+        // --- 🎵 音樂播放器設定 (請在此修改) ---
+        const MUSIC_CONFIG = {
+            useGitHub: true,            // ★ 如果您的檔案在 GitHub 上，請改為 true
+            username: 'nicktsai88',   // 您的 GitHub 使用者名稱
+            repo: 'Music',      // 您的 GitHub 儲存庫名稱
+            folder: '',             // MP3 所在的資料夾名稱
+            // 預設範例音樂 (當 useGitHub 為 false 時使用)
+            fallbackPlaylist: [
+                { name: 'Inspiration', url: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3' },
+                { name: 'Motivated', url: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3' },
+                { name: 'Success', url: 'https://cdn.pixabay.com/download/audio/2021/09/06/audio_9c084d59a5.mp3' }
+            ]
+        };
+
+        let audioPlaylist = [];
+        let currentTrackIndex = 0;
+        const audioPlayer = document.getElementById('audio-player');
         
         // 測驗狀態
         let quizState = {
@@ -610,289 +560,39 @@
             level: 1,
             score: 0,
             currentIndex: 0,
-            answers: {}, 
-            locked: {}  
+            answers: {}, // { qId: selectedOption }
+            locked: {}   // 瀑布流模式下鎖定的題目 ID
         };
 
-        // 音樂與音效
-        const MUSIC_CONFIG = {
-            useGitHub: true,            
-            username: 'nicktsai88',   
-            repo: 'Music',       
-            folder: '',              
-            fallbackPlaylist: [
-                { name: 'Inspiration', url: 'https://cdn.pixabay.com/download/audio/2022/01/18/audio_d0a13f69d2.mp3' },
-                { name: 'Motivated', url: 'https://cdn.pixabay.com/download/audio/2022/05/27/audio_1808fbf07a.mp3' },
-                { name: 'Success', url: 'https://cdn.pixabay.com/download/audio/2021/09/06/audio_9c084d59a5.mp3' }
-            ]
-        };
-        let audioPlaylist = [];
-        let currentTrackIndex = 0;
-        const audioPlayer = document.getElementById('audio-player');
         const audioCorrect = new Audio('sounds/correct.mp3'); audioCorrect.volume = 0.4;
         const audioFail = new Audio('sounds/fail.mp3'); audioFail.volume = 0.4;
 
         // --- 初始化 ---
-        window.addEventListener('DOMContentLoaded', async () => {
-            await initFirebaseConnection();
-
-            fetch('questions.json').then(res => res.json())
+        fetch('questions.json').then(res => res.json())
             .then(data => { 
                 allQuestions = data; 
+                renderQuickLogin();
                 
-                // 自動登入檢查 (改為檢查 localStorage 暫存的 User Name，但資料從雲端抓)
-                const lastUser = localStorage.getItem(COLLECTION_NAME + '_last_active_user');
-                const lastAvatar = localStorage.getItem(COLLECTION_NAME + '_last_active_avatar');
+                // ★ 自動登入檢查 ★
+                const lastUser = localStorage.getItem(APP_PREFIX + 'last_active_user');
+                const lastAvatar = localStorage.getItem(APP_PREFIX + 'last_active_avatar');
                 if (lastUser) {
-                    console.log("Auto-login request:", lastUser);
-                    window.app.loginAndStart(lastUser, lastAvatar || 'Chris.png');
+                    console.log("Auto-login found:", lastUser);
+                    // 呼叫登入函數，但傳入參數
+                    loginAndStart(lastUser, lastAvatar || 'Chris.png');
                 }
             })
             .catch(e => console.error("Error loading questions:", e));
         
-            window.app.initMusicSystem();
-        });
+        // 頁面載入時先準備歌單
+        initMusicSystem();
 
-        // 建立與 UI 的橋樑
-        window.app = {
-            togglePlay, prevTrack, nextTrack, setVolume,
-            selectAvatar, loginAndStart, quickLogin, deleteUser,
-            goToDashboard, logout,
-            startStandardQuiz, startWaterfallQuiz, restartQuiz, exitQuiz,
-            nextQuestion, handleStandardAnswer, handleWaterfallAnswer,
-            toggleStandardFavorite, toggleWaterfallFav,
-            showHistory, showCollection, openCardModal, closeCardModal,
-            toggleChatWindow, handleAiKeypress, sendAiMessage, resetAiKey,
-            initMusicSystem: initMusicSystem
-        };
+        function getUserKey(key) { return APP_PREFIX + userName + '_' + key; }
 
-        // --- Firebase Logic ---
-
-        async function initFirebaseConnection() {
-            try {
-                // 匿名登入
-                await signInAnonymously(auth);
-                isFirebaseReady = true;
-                updateConnectionStatus(true);
-                
-                // 監聽全域使用者列表
-                listenToGlobalUsers();
-
-            } catch (error) {
-                console.error("Firebase Connection Failed:", error);
-                isFirebaseReady = false;
-                updateConnectionStatus(false, "離線模式 (功能受限)");
-                alert("無法連線至雲端資料庫，請檢查網路或 API Key 設定。");
-            }
-        }
-
-        function updateConnectionStatus(isOnline, text = "雲端同步中") {
-            const statusDot = document.getElementById('status-dot');
-            const statusText = document.getElementById('status-text');
-            if(isOnline) {
-                statusDot.classList.add('online');
-                statusText.innerText = text;
-            } else {
-                statusDot.classList.remove('online');
-                statusText.innerText = text;
-            }
-        }
-
-        // 監聽使用者列表 (取代 localStorage 的 'savedUsers')
-        function listenToGlobalUsers() {
-            const docRef = doc(db, COLLECTION_NAME, DOC_GLOBAL);
-            unsubscribeGlobal = onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    renderQuickLogin(data.users || []);
-                } else {
-                    renderQuickLogin([]); // 無使用者
-                }
-            }, (error) => {
-                console.error("Global listen error:", error);
-            });
-        }
-
-        function renderQuickLogin(users) {
-            const container = document.getElementById('quick-login-area');
-            if(users.length === 0) {
-                container.innerHTML = '<span style="color:#999; font-size:0.9em;">暫無雲端存檔，請建立新選手。</span>';
-                return;
-            }
-            container.innerHTML = users.map(u => `
-                <div class="user-tag" onclick="window.app.quickLogin('${u.name}', '${u.avatar}')">
-                    <img src="images/${u.avatar}" style="width:20px;height:20px;border-radius:50%;">${u.name}
-                    <span class="delete-user" onclick="event.stopPropagation();window.app.deleteUser('${u.name}')">×</span>
-                </div>
-            `).join('');
-        }
-
-        // 登入邏輯 (轉為 Firestore 監聽)
-        async function loginAndStart(autoName = null, autoAvatar = null) {
-            if(!isFirebaseReady) return alert("雲端尚未連線，請稍候...");
-
-            let name;
-            if (autoName) {
-                name = autoName;
-                currentAvatar = autoAvatar;
-            } else {
-                name = document.getElementById('username').value.trim();
-                if(!name) return alert('請輸入選手名稱');
-            }
-            
-            userName = name;
-            
-            // 本地快取最後使用者 (僅用於 F5 自動重登)
-            localStorage.setItem(COLLECTION_NAME + '_last_active_user', userName);
-            localStorage.setItem(COLLECTION_NAME + '_last_active_avatar', currentAvatar);
-
-            // 更新全域使用者列表
-            updateGlobalUserList(userName, currentAvatar);
-
-            // 監聽該使用者的專屬文件
-            const userDocRef = doc(db, COLLECTION_NAME, userName);
-            
-            // 顯示載入中
-            updateConnectionStatus(true, "下載進度中...");
-
-            // 取消舊的監聽 (如果有)
-            if(unsubscribeUser) unsubscribeUser();
-
-            unsubscribeUser = onSnapshot(userDocRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    currentUserData = docSnap.data();
-                } else {
-                    // 新使用者，初始化空資料
-                    currentUserData = {
-                        mistakeBank: [],
-                        favoriteBank: [],
-                        quizHistory: [],
-                        quizProgress: { maxLevel: 1, scores: {} },
-                        standardProgress: null,
-                        waterfallProgress_speed: null,
-                        waterfallProgress_mistake: null,
-                        waterfallProgress_favorite: null
-                    };
-                }
-                
-                // 當資料更新時，如果正在儀表板，即時更新 UI
-                if(document.getElementById('level-screen').style.display === 'block') {
-                    renderLevelGrid();
-                    updateDashboardTools();
-                }
-
-                updateConnectionStatus(true, "雲端同步完成");
-
-            }, (error) => {
-                console.error("User data listen error:", error);
-                updateConnectionStatus(false, "資料讀取失敗");
-            });
-
-            // 音樂邏輯
-            if(audioPlayer.paused && audioPlaylist.length > 0) {
-                shufflePlaylist();
-                currentTrackIndex = 0;
-                loadTrack(0, true);
-            }
-
-            // 稍微延遲以確保 Snapshot 第一次回調 (雖然 onSnapshot 很快，但為了 UI 平順)
-            setTimeout(() => {
-                goToDashboard();
-            }, 500);
-        }
-
-        async function updateGlobalUserList(name, avatar) {
-            const docRef = doc(db, COLLECTION_NAME, DOC_GLOBAL);
-            // 使用 arrayUnion 避免覆蓋其他使用者，但要注意物件需要完全匹配才能去重
-            // 這裡為了簡化，先讀取再過濾再寫入 (對於小型 app 可行)
-            // 更好的方式是使用 arrayUnion，但因為可能更新 avatar，所以這裡做簡單處理
-            try {
-                // 這裡我們只是觸發一個更新，實際上 onSnapshot 會處理列表渲染
-                // 若文件不存在，setDoc merge 會自動建立
-                // 注意：這裡無法直接用 arrayUnion 更新物件屬性，所以先 get 再 set
-                const snap = await getDoc(docRef);
-                let users = [];
-                if(snap.exists()) users = snap.data().users || [];
-                
-                // 移除舊的同名資料
-                users = users.filter(u => u.name !== name);
-                // 加入新的
-                users.push({ name, avatar });
-                
-                await setDoc(docRef, { users }, { merge: true });
-            } catch(e) {
-                console.error("Update global user error:", e);
-            }
-        }
-
-        function quickLogin(name, av) {
-            document.getElementById('username').value = name;
-            currentAvatar = av;
-            loginAndStart();
-        }
-
-        async function deleteUser(name) {
-            if(!confirm(`確定要從雲端刪除選手 ${name} 的所有資料？此操作無法復原！`)) return;
-            
-            try {
-                // 1. 刪除使用者列表中的項目
-                const globalRef = doc(db, COLLECTION_NAME, DOC_GLOBAL);
-                const snap = await getDoc(globalRef);
-                if(snap.exists()) {
-                    let users = snap.data().users || [];
-                    const userToDelete = users.find(u => u.name === name);
-                    if(userToDelete) {
-                        await updateDoc(globalRef, {
-                            users: arrayRemove(userToDelete)
-                        });
-                    }
-                }
-
-                // 2. 刪除使用者的資料文件 (實際上 Firestore 前端 SDK deleteDoc 權限通常較嚴格，但在這裡假設有權限)
-                // 若無權限，至少移除了入口
-                // 如果是此 App 的邏輯，我們只刪除 Global list 即可隱藏，
-                // 但為了乾淨，我們嘗試刪除該 Document
-                /* 注意：標準 Firestore 安全規則可能禁止刪除他人資料，但在匿名+寬鬆規則下可行 */
-                // await deleteDoc(doc(db, COLLECTION_NAME, name)); 
-                // 註：為了安全起見，這裡我們只更新 Global List。若需要刪除 Document，需後端 Admin SDK 或特定規則。
-                
-                // 清除本地快取
-                if (localStorage.getItem(COLLECTION_NAME + '_last_active_user') === name) {
-                    localStorage.removeItem(COLLECTION_NAME + '_last_active_user');
-                }
-
-            } catch(e) {
-                console.error("Delete user error:", e);
-                alert("刪除失敗，請稍後再試");
-            }
-        }
-
-        function logout() { 
-            localStorage.removeItem(COLLECTION_NAME + '_last_active_user');
-            if(unsubscribeUser) unsubscribeUser();
-            if(unsubscribeGlobal) unsubscribeGlobal();
-            location.reload(); 
-        }
-
-        // --- 核心資料儲存 Helper ---
-        async function saveUserData(field, data) {
-            if(!userName || !isFirebaseReady) return;
-            // 樂觀更新 (Optimistic Update): 本地變數已經改了 (JS reference)，UI 會反應
-            // 這裡只需發送請求
-            try {
-                const docRef = doc(db, COLLECTION_NAME, userName);
-                updateConnectionStatus(true, "儲存中...");
-                await setDoc(docRef, { [field]: data }, { merge: true });
-                updateConnectionStatus(true, "已同步");
-            } catch(e) {
-                console.error("Save error:", e);
-                updateConnectionStatus(false, "儲存失敗");
-            }
-        }
-
-        // --- 音樂系統 (保持不變) ---
+        // --- 音樂系統邏輯 ---
         async function initMusicSystem() {
             if (MUSIC_CONFIG.useGitHub) {
+                // 使用 GitHub API 讀取資料夾
                 const apiUrl = `https://api.github.com/repos/${MUSIC_CONFIG.username}/${MUSIC_CONFIG.repo}/contents/${MUSIC_CONFIG.folder}`;
                 try {
                     document.getElementById('track-status').innerText = "讀取 GitHub 歌單中...";
@@ -900,14 +600,16 @@
                     if (!response.ok) throw new Error('GitHub API Error');
                     const files = await response.json();
                     
+                    // 過濾出 MP3 並建立歌單
                     audioPlaylist = files
                         .filter(file => file.name.toLowerCase().endsWith('.mp3'))
                         .map(file => ({
                             name: file.name.replace('.mp3', ''),
-                            url: file.download_url
+                            url: file.download_url // 使用 GitHub 提供的原始下載連結
                         }));
                     
                     if (audioPlaylist.length === 0) throw new Error('Folder is empty or no MP3s');
+                    
                     console.log("GitHub Music Loaded:", audioPlaylist);
                 } catch (e) {
                     console.error("Music Load Failed:", e);
@@ -917,7 +619,11 @@
             } else {
                 audioPlaylist = MUSIC_CONFIG.fallbackPlaylist;
             }
+            
+            // 洗牌
             shufflePlaylist();
+            
+            // 準備第一首但不播放 (等待使用者點擊)
             if(audioPlaylist.length > 0) {
                 currentTrackIndex = 0;
                 loadTrack(currentTrackIndex, false);
@@ -933,9 +639,11 @@
 
         function loadTrack(index, autoPlay = true) {
             if (index < 0 || index >= audioPlaylist.length) return;
+            
             const track = audioPlaylist[index];
             audioPlayer.src = track.url;
             audioPlayer.volume = document.getElementById('volume-slider').value;
+            
             document.getElementById('track-name').innerText = track.name;
             
             if (autoPlay) {
@@ -975,15 +683,98 @@
             loadTrack(currentTrackIndex);
         }
 
-        function setVolume(v) { audioPlayer.volume = v; }
-        audioPlayer.onended = function() { nextTrack(); };
+        function setVolume(v) {
+            audioPlayer.volume = v;
+        }
 
+        // 當歌曲結束時自動播下一首
+        audioPlayer.onended = function() {
+            nextTrack();
+        };
 
-        // --- UI Navigation ---
+        // --- 登入與導航 ---
         function selectAvatar(img, el) {
             currentAvatar = img;
             document.querySelectorAll('.avatar-option').forEach(e => e.classList.remove('selected'));
             el.classList.add('selected');
+        }
+
+        function loginAndStart(autoName = null, autoAvatar = null) {
+            let name;
+            // 判斷是自動登入還是手動登入
+            if (autoName) {
+                name = autoName;
+                currentAvatar = autoAvatar;
+            } else {
+                name = document.getElementById('username').value.trim();
+                if(!name) return alert('請輸入選手名稱');
+            }
+            
+            userName = name;
+            
+            // ★ 保存當前活躍用戶 (Session Persistence)
+            localStorage.setItem(APP_PREFIX + 'last_active_user', userName);
+            localStorage.setItem(APP_PREFIX + 'last_active_avatar', currentAvatar);
+
+            saveUser();
+            
+            // ★ 自動播放邏輯 (如果是自動登入，瀏覽器可能會擋 Audio，catch 區塊會處理)
+            if(audioPlayer.paused && audioPlaylist.length > 0) {
+                // 如果是手動登入，洗牌後播放
+                // 如果是 F5 自動登入，也重新開始
+                shufflePlaylist();
+                currentTrackIndex = 0;
+                loadTrack(0, true);
+            }
+
+            goToDashboard();
+        }
+
+        function saveUser() {
+            let users = JSON.parse(localStorage.getItem(APP_PREFIX+'savedUsers')) || [];
+            if(!users.some(u => u.name === userName)) {
+                users.push({name: userName, avatar: currentAvatar});
+                localStorage.setItem(APP_PREFIX+'savedUsers', JSON.stringify(users));
+            }
+        }
+        
+        function renderQuickLogin() {
+            const users = JSON.parse(localStorage.getItem(APP_PREFIX+'savedUsers')) || [];
+            const container = document.getElementById('quick-login-area');
+            container.innerHTML = users.map(u => `
+                <div class="user-tag" onclick="quickLogin('${u.name}', '${u.avatar}')">
+                    <img src="images/${u.avatar}" style="width:20px;height:20px;border-radius:50%;">${u.name}
+                    <span class="delete-user" onclick="event.stopPropagation();deleteUser('${u.name}')">×</span>
+                </div>
+            `).join('');
+        }
+
+        function quickLogin(name, av) {
+            document.getElementById('username').value = name;
+            currentAvatar = av;
+            loginAndStart();
+        }
+
+        function deleteUser(name) {
+            if(!confirm(`刪除 ${name} 的所有資料？`)) return;
+            localStorage.removeItem(APP_PREFIX + name + '_mistakeBank');
+            localStorage.removeItem(APP_PREFIX + name + '_favoriteBank');
+            localStorage.removeItem(APP_PREFIX + name + '_quizHistory');
+            localStorage.removeItem(APP_PREFIX + name + '_quizProgress');
+            localStorage.removeItem(APP_PREFIX + name + '_standardProgress');
+            // 移除所有模式的瀑布流進度
+            localStorage.removeItem(APP_PREFIX + name + '_waterfallProgress_speed');
+            localStorage.removeItem(APP_PREFIX + name + '_waterfallProgress_mistake');
+            localStorage.removeItem(APP_PREFIX + name + '_waterfallProgress_favorite');
+            
+            // 清除該用戶的自動登入狀態
+            if (localStorage.getItem(APP_PREFIX + 'last_active_user') === name) {
+                localStorage.removeItem(APP_PREFIX + 'last_active_user');
+            }
+
+            let users = JSON.parse(localStorage.getItem(APP_PREFIX+'savedUsers')) || [];
+            localStorage.setItem(APP_PREFIX+'savedUsers', JSON.stringify(users.filter(u => u.name !== name)));
+            renderQuickLogin();
         }
 
         function goToDashboard() {
@@ -1000,14 +791,19 @@
             document.querySelectorAll('.container-box').forEach(el => el.style.display = 'none');
         }
 
-        // --- Standard Quiz Mode ---
+        // --- 標準實驗模式 (Standard Mode) ---
         function renderLevelGrid() {
             const grid = document.getElementById('level-grid');
-            if(!grid) return;
-            grid.innerHTML = "";
+            if(!grid) return console.error("Level grid element not found!");
             
-            // 從 currentUserData 讀取
-            let progress = currentUserData.quizProgress || { maxLevel: 1, scores: {} };
+            grid.innerHTML = "";
+            let progress;
+            try {
+                progress = JSON.parse(localStorage.getItem(getUserKey('quizProgress'))) || { maxLevel: 1, scores: {} };
+            } catch(e) {
+                progress = { maxLevel: 1, scores: {} };
+            }
+            
             if(!progress.scores) progress.scores = {};
             if(!progress.maxLevel) progress.maxLevel = 1;
 
@@ -1018,12 +814,12 @@
                 
                 if (level <= progress.maxLevel) {
                     const score = progress.scores[level];
-                    let icon = '🏃';
-                    if (score >= 90) icon = '🥇';
-                    else if (score >= 70) icon = '🥈';
+                    let icon = '🏃'; // 更換圖示
+                    if (score >= 90) icon = '🥇'; // 金牌
+                    else if (score >= 70) icon = '🥈'; // 銀牌
                     
                     btn.innerHTML = `<div class="lvl-icon">${icon}</div><div class="lvl-label">關卡 ${level}</div>${score !== undefined ? `<div class="lvl-score">${score}分</div>` : ''}`;
-                    btn.onclick = () => window.app.startStandardQuiz(level);
+                    btn.onclick = () => startStandardQuiz(level);
                 } else {
                     btn.disabled = true;
                     btn.innerHTML = `<div class="lvl-icon" style="filter:grayscale(1);">🔒</div><div class="lvl-label">關卡 ${level}</div>`;
@@ -1033,11 +829,13 @@
         }
 
         function startStandardQuiz(level, forceNew = false) {
-            // Check saved progress in currentUserData
+            const savedKey = getUserKey('standardProgress');
             if(!forceNew) {
-                const saved = currentUserData.standardProgress;
+                const saved = JSON.parse(localStorage.getItem(savedKey));
                 if(saved && saved.level === level) {
+                     // 自動恢復進度
                      quizState = saved;
+                     // 確保有資料才恢復，避免資料不一致
                      const subset = allQuestions.filter(q => quizState.qIds.includes(q.id));
                      if(subset.length > 0) {
                         currentQuizData = subset;
@@ -1047,10 +845,12 @@
                 }
             }
             
+            // 開始新測驗
             let startIdx = 0;
             for(let i=0; i<level-1; i++) startIdx += LEVEL_CONFIG[i];
             let endIdx = startIdx + LEVEL_CONFIG[level-1];
             
+            // 防呆：如果題庫還沒上傳完整，避免 crash
             if (startIdx >= allQuestions.length) {
                 return alert("本關卡題目尚未開放，請稍後再試！");
             }
@@ -1083,8 +883,8 @@
             const qData = currentQuizData[quizState.currentIndex];
             if(!qData) return finishStandardQuiz();
             
-            // Auto Save to Cloud
-            saveUserData('standardProgress', quizState);
+            // Auto Save
+            localStorage.setItem(getUserKey('standardProgress'), JSON.stringify(quizState));
 
             document.getElementById('current-q-num').innerText = quizState.currentIndex + 1;
             document.getElementById('progress-bar').style.width = ((quizState.currentIndex) / currentQuizData.length * 100) + '%';
@@ -1112,7 +912,7 @@
                     if(optCode === ansCode) btn.classList.add('correct');
                     if(optCode === userAns.substring(0,3) && optCode !== ansCode) btn.classList.add('wrong');
                 } else {
-                    btn.onclick = () => window.app.handleStandardAnswer(btn, opt, qData);
+                    btn.onclick = () => handleStandardAnswer(btn, opt, qData);
                 }
                 list.appendChild(btn);
             });
@@ -1153,8 +953,7 @@
         }
 
         function finishStandardQuiz() {
-            saveUserData('standardProgress', null); // Clear progress
-            
+            localStorage.removeItem(getUserKey('standardProgress')); // Clear save
             document.getElementById('quiz-content').style.display = 'none';
             document.getElementById('score-box').style.display = 'block';
             
@@ -1163,7 +962,8 @@
             document.getElementById('final-name').innerText = userName;
             
             // Progress logic
-            let progress = currentUserData.quizProgress || { maxLevel: 1, scores: {} };
+            let progress = JSON.parse(localStorage.getItem(getUserKey('quizProgress'))) || { maxLevel: 1, scores: {} };
+            
             if(!progress.scores) progress.scores = {};
             if(!progress.maxLevel) progress.maxLevel = 1;
 
@@ -1175,28 +975,28 @@
                 progress.maxLevel++;
                 unlocked = true;
             }
-            
-            // Save to Cloud
-            saveUserData('quizProgress', progress);
+            localStorage.setItem(getUserKey('quizProgress'), JSON.stringify(progress));
             
             document.getElementById('unlock-msg').style.display = unlocked ? 'block' : 'none';
             document.getElementById('new-card-alert').style.display = (finalScore >= 70 && oldScore < 70) ? 'block' : 'none';
             
+            // Score Comment
             let cmt = "再接再厲！";
             if(finalScore == 100) cmt = "完美無瑕，運動家精神！";
             else if(finalScore >= 90) cmt = "表現優異！";
             else if(finalScore >= 70) cmt = "雖敗猶榮！";
             document.getElementById('score-comment').innerText = cmt;
 
+            // Save History
             saveHistory(finalScore, `關卡 ${quizState.level}`);
         }
 
-        // --- Waterfall Mode ---
+        // --- 瀑布流刷題模式 (Waterfall Mode) ---
         function startWaterfallQuiz(mode, forceNew = false) {
-            const savedKey = 'waterfallProgress_' + mode;
+            const savedKey = getUserKey('waterfallProgress_' + mode);
             
             if(!forceNew) {
-                const saved = currentUserData[savedKey];
+                const saved = JSON.parse(localStorage.getItem(savedKey));
                 if(saved) {
                     quizState = saved;
                     renderWaterfallUI();
@@ -1204,24 +1004,25 @@
                 }
             }
 
+            // Init New
             quizState = {
                 mode: mode,
                 score: 0,
                 answers: {},
-                locked: {}, 
+                locked: {}, // { qId: true/false }
                 qIds: []
             };
 
             if(mode === 'speed') {
-                quizState.qIds = allQuestions.map(q => q.id);
+                quizState.qIds = allQuestions.map(q => q.id); // 依照 json 順序
                 document.getElementById('wf-mode-title').innerText = "賽道衝刺";
                 document.getElementById('wf-mode-icon').innerText = "⚡";
             } else if(mode === 'mistake') {
-                quizState.qIds = currentUserData.mistakeBank || [];
+                quizState.qIds = JSON.parse(localStorage.getItem(getUserKey('mistakeBank'))) || [];
                 document.getElementById('wf-mode-title').innerText = "錯題訓練";
                 document.getElementById('wf-mode-icon').innerText = "📕";
             } else if(mode === 'favorite') {
-                quizState.qIds = currentUserData.favoriteBank || [];
+                quizState.qIds = JSON.parse(localStorage.getItem(getUserKey('favoriteBank'))) || [];
                 document.getElementById('wf-mode-title').innerText = "重點收藏";
                 document.getElementById('wf-mode-icon').innerText = "⭐";
             }
@@ -1251,8 +1052,8 @@
                 
                 let actionsHtml = `
                     <div class="card-actions">
-                         ${canDelete ? `<span class="action-icon trash" onclick="window.app.deleteCardItem('${q.id}')">🗑️</span>` : ''}
-                        <span class="action-icon ${isFav ? 'active' : ''}" onclick="window.app.toggleWaterfallFav(this, '${q.id}')">${isFav ? '♥&#xFE0E;' : '♡&#xFE0E;'}</span>
+                         ${canDelete ? `<span class="action-icon trash" onclick="deleteCardItem('${q.id}')">🗑️</span>` : ''}
+                        <span class="action-icon ${isFav ? 'active' : ''}" onclick="toggleWaterfallFav(this, '${q.id}')">${isFav ? '♥&#xFE0E;' : '♡&#xFE0E;'}</span>
                     </div>
                 `;
                 
@@ -1275,7 +1076,7 @@
                         if(userSel === val && userSel !== correct) btnClass += ' wrong';
                     }
                     
-                    optionsHtml += `<button class="${btnClass}" ${disabled} onclick="window.app.handleWaterfallAnswer('${q.id}', '${opt}')">${opt}</button>`;
+                    optionsHtml += `<button class="${btnClass}" ${disabled} onclick="handleWaterfallAnswer('${q.id}', '${opt}')">${opt}</button>`;
                 });
                 optionsHtml += '</div>';
 
@@ -1320,8 +1121,7 @@
                 if(card) card.classList.add('card-wrong');
             }
             
-            // Save Progress
-            saveUserData('waterfallProgress_' + quizState.mode, quizState);
+            localStorage.setItem(getUserKey('waterfallProgress_' + quizState.mode), JSON.stringify(quizState));
             
             updateWaterfallStats();
             
@@ -1346,26 +1146,23 @@
             document.getElementById('wf-score').innerText = quizState.score;
         }
 
-        // --- Common Helpers ---
+        // --- Common Logic (Favorites, Mistakes, History) ---
         function addToMistake(id) {
-            let list = currentUserData.mistakeBank || [];
+            let list = JSON.parse(localStorage.getItem(getUserKey('mistakeBank'))) || [];
             if(!list.includes(id)) {
                 list.push(id);
-                saveUserData('mistakeBank', list);
-                // 為了即時 UI 更新，雖然 onSnapshot 會回來，但這裡手動更新 current
-                currentUserData.mistakeBank = list;
+                localStorage.setItem(getUserKey('mistakeBank'), JSON.stringify(list));
                 updateDashboardTools();
             }
         }
 
         function isFavorite(id) {
-            let list = currentUserData.favoriteBank || [];
+            let list = JSON.parse(localStorage.getItem(getUserKey('favoriteBank'))) || [];
             return list.includes(id);
         }
 
         function toggleWaterfallFav(btn, id) {
-            // Need to bind context or use window.app
-            let list = currentUserData.favoriteBank || [];
+            let list = JSON.parse(localStorage.getItem(getUserKey('favoriteBank'))) || [];
             if(list.includes(id)) {
                 list = list.filter(x => x !== id);
                 btn.classList.remove('active');
@@ -1375,14 +1172,13 @@
                 btn.classList.add('active');
                 btn.innerHTML = '♥&#xFE0E;';
             }
-            saveUserData('favoriteBank', list);
-            currentUserData.favoriteBank = list;
+            localStorage.setItem(getUserKey('favoriteBank'), JSON.stringify(list));
             updateDashboardTools();
         }
 
         function updateDashboardTools() {
-            let mList = currentUserData.mistakeBank || [];
-            let fList = currentUserData.favoriteBank || [];
+            let mList = JSON.parse(localStorage.getItem(getUserKey('mistakeBank'))) || [];
+            let fList = JSON.parse(localStorage.getItem(getUserKey('favoriteBank'))) || [];
             
             const btnM = document.getElementById('btn-mistake');
             const btnF = document.getElementById('btn-favorite');
@@ -1399,28 +1195,25 @@
         }
 
         function deleteCardItem(id) {
-            // 這個 function 只在 Waterfall 模式下呼叫
-            // 需要判斷目前是在哪個 mode
             if(!confirm("確定要從此清單中刪除這題嗎？")) return;
+            if(!confirm("再次確認：刪除後將無法恢復！")) return;
             
             if(quizState.mode === 'mistake') {
-                let list = currentUserData.mistakeBank || [];
+                let list = JSON.parse(localStorage.getItem(getUserKey('mistakeBank'))) || [];
                 list = list.filter(x => x !== id);
-                saveUserData('mistakeBank', list);
-                currentUserData.mistakeBank = list;
+                localStorage.setItem(getUserKey('mistakeBank'), JSON.stringify(list));
                 quizState.qIds = list;
             } else if (quizState.mode === 'favorite') {
-                let list = currentUserData.favoriteBank || [];
+                let list = JSON.parse(localStorage.getItem(getUserKey('favoriteBank'))) || [];
                 list = list.filter(x => x !== id);
-                saveUserData('favoriteBank', list);
-                currentUserData.favoriteBank = list;
+                localStorage.setItem(getUserKey('favoriteBank'), JSON.stringify(list));
                 quizState.qIds = list;
             }
 
             const card = document.getElementById(`card-${id}`);
             if(card) card.remove();
             
-            saveUserData('waterfallProgress_' + quizState.mode, quizState);
+            localStorage.setItem(getUserKey('waterfallProgress_' + quizState.mode), JSON.stringify(quizState));
             
             updateWaterfallStats();
             updateDashboardTools();
@@ -1434,23 +1227,20 @@
         function toggleStandardFavorite() {
             if(!currentQuizData[quizState.currentIndex]) return;
             const id = currentQuizData[quizState.currentIndex].id;
-            let list = currentUserData.favoriteBank || [];
+            let list = JSON.parse(localStorage.getItem(getUserKey('favoriteBank'))) || [];
             
             if(list.includes(id)) {
                 list = list.filter(x => x !== id);
             } else {
                 list.push(id);
             }
-            
-            saveUserData('favoriteBank', list);
-            currentUserData.favoriteBank = list; // Optimistic
-            
+            localStorage.setItem(getUserKey('favoriteBank'), JSON.stringify(list));
             updateStandardFavoriteUI(id);
             updateDashboardTools();
         }
 
         function updateStandardFavoriteUI(id) {
-            let list = currentUserData.favoriteBank || [];
+            let list = JSON.parse(localStorage.getItem(getUserKey('favoriteBank'))) || [];
             const btn = document.getElementById('std-fav-btn');
             if(list.includes(id)) {
                 btn.innerText = '★'; btn.style.background = 'var(--favorite-color)'; btn.style.color = 'white';
@@ -1465,40 +1255,40 @@
                     const currentScore = Math.round((quizState.score / currentQuizData.length) * 100);
                     saveHistory(currentScore, `關卡 ${quizState.level} (未完)`);
                 }
+                
                 goToDashboard();
             }
         }
 
         function restartQuiz() {
             if (!confirm("確定要重新開始嗎？所有進度將被清除！")) return;
-            
+            if (!confirm("再次確認：清除後無法復原，確定重新開始？")) return;
+
             if (quizState.mode === 'standard') {
-                saveUserData('standardProgress', null);
-                // 稍微延遲讓雲端寫入觸發後再重置，或者直接 forceNew
-                // 在這裡直接調用 forceNew，且因為是 local state 驅動 UI，不會有問題
-                startStandardQuiz(quizState.level, true);
+                localStorage.removeItem(getUserKey('standardProgress'));
+                startStandardQuiz(quizState.level, true); // forceNew = true
             } else {
-                saveUserData('waterfallProgress_' + quizState.mode, null);
-                startWaterfallQuiz(quizState.mode, true);
+                localStorage.removeItem(getUserKey('waterfallProgress_' + quizState.mode));
+                startWaterfallQuiz(quizState.mode, true); // forceNew = true
             }
         }
 
         function saveHistory(score, modeTitle) {
-            let history = currentUserData.quizHistory || [];
+            let history = JSON.parse(localStorage.getItem(getUserKey('quizHistory'))) || [];
             history.push({
                 date: new Date().toLocaleString(),
                 score: score,
                 mode: modeTitle
             });
-            saveUserData('quizHistory', history);
+            localStorage.setItem(getUserKey('quizHistory'), JSON.stringify(history));
         }
         
         function showHistory() {
             hideAllScreens();
             document.getElementById('history-screen').style.display = 'block';
             const list = document.getElementById('history-list');
-            let history = currentUserData.quizHistory || [];
-            list.innerHTML = history.slice().reverse().map(h => `
+            let history = JSON.parse(localStorage.getItem(getUserKey('quizHistory'))) || [];
+            list.innerHTML = history.reverse().map(h => `
                 <li style="background:#fff; padding:15px; border-bottom:1px solid #eee; margin-bottom:10px; border-radius:5px;">
                     <strong>${h.mode}</strong> - <span style="color:${h.score>=70?'green':'red'}">${h.score}分</span>
                     <br><small>${h.date}</small>
@@ -1511,7 +1301,10 @@
             document.getElementById('collection-screen').style.display = 'block';
             const grid = document.getElementById('collection-grid');
             grid.innerHTML = "";
-            const progress = currentUserData.quizProgress || { maxLevel: 1, scores: {} };
+            const progress = JSON.parse(localStorage.getItem(getUserKey('quizProgress'))) || { maxLevel: 1, scores: {} };
+            
+            if(!progress.scores) progress.scores = {};
+
             const scores = progress.scores || {};
 
             for(let i=1; i<=LEVEL_CONFIG.length; i++) {
@@ -1522,7 +1315,7 @@
                 
                 if(unlocked) {
                     item.innerHTML = `<img src="images/card_${num}.jpg" onerror="this.src='https://via.placeholder.com/150?text=Card+${num}'">`;
-                    item.onclick = () => window.app.openCardModal(`images/card_${num}.jpg`, `榮譽卡 #${num}`);
+                    item.onclick = () => openCardModal(`images/card_${num}.jpg`, `榮譽卡 #${num}`);
                 } else {
                     item.innerHTML = `<span style="font-size:2em;">🔒</span><br>關卡 ${i}`;
                 }
@@ -1539,6 +1332,12 @@
         }
         function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
         
+        function logout() { 
+            // 登出時，移除自動登入紀錄
+            localStorage.removeItem(APP_PREFIX + 'last_active_user');
+            location.reload(); 
+        }
+
         // --- AI Chat Logic ---
         function toggleChatWindow() {
             const win = document.getElementById('ai-chat-window');
@@ -1550,8 +1349,8 @@
         }
 
         function resetAiKey() {
-            if(confirm("確定要清除目前儲存的 API Key 嗎？")) {
-                localStorage.removeItem(COLLECTION_NAME + '_gemini_api_key');
+            if(confirm("確定要清除目前儲存的 API Key 嗎？下次使用 AI 功能時將需要重新輸入。")) {
+                localStorage.removeItem(APP_PREFIX + 'gemini_api_key');
                 alert("API Key 已清除！");
             }
         }
@@ -1563,15 +1362,16 @@
             
             if (!userText) return;
 
-            let apiKey = localStorage.getItem(COLLECTION_NAME + '_gemini_api_key');
+            let apiKey = localStorage.getItem(APP_PREFIX + 'gemini_api_key');
 
             if (!apiKey) {
-                const inputKey = prompt("請輸入您的 Google Gemini API Key：\n(金鑰將儲存在您的瀏覽器本地端)");
+                const inputKey = prompt("請輸入您的 Google Gemini API Key：\n(金鑰將儲存在您的瀏覽器本地端，不會上傳伺服器，請安心使用)");
                 if (!inputKey || inputKey.trim() === "") {
-                    return alert("需要 API Key 才能使用 AI 陪練員功能喔！");
+                    alert("需要 API Key 才能使用 AI 陪練員功能喔！");
+                    return;
                 }
                 apiKey = inputKey.trim();
-                localStorage.setItem(COLLECTION_NAME + '_gemini_api_key', apiKey);
+                localStorage.setItem(APP_PREFIX + 'gemini_api_key', apiKey);
             }
 
             const userMsg = document.createElement('div');
@@ -1629,8 +1429,8 @@
                 msgArea.appendChild(errorMsg);
 
                 if (error.message.includes('400') || error.message.includes('403') || error.message.includes('key')) {
-                    if(confirm("API Key 可能無效。是否要清除並重新輸入？")) {
-                        localStorage.removeItem(COLLECTION_NAME + '_gemini_api_key');
+                    if(confirm("連線失敗，可能是 API Key 無效或過期。是否要清除舊的 Key 並重新輸入？")) {
+                        localStorage.removeItem(APP_PREFIX + 'gemini_api_key');
                     }
                 }
             }
