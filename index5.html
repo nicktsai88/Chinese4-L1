@@ -575,6 +575,7 @@
   appId: "1:76289812052:web:898384a916f9f341f62fc1"
 };
 
+
         // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
@@ -831,11 +832,7 @@
         }
 
         async function deleteUser(name) {
-            // 第一次確認
             if(!confirm(`確定要從雲端刪除選手 ${name} 的所有資料？此操作無法復原！`)) return;
-
-            // 第二次確認 (雙重防護)
-            if(!confirm(`⚠️ 再次警告：這將永久刪除 ${name} 的所有進度、錯題與榮譽卡！\n\n您真的確定要執行刪除嗎？`)) return;
             
             try {
                 // 1. 刪除使用者列表中的項目
